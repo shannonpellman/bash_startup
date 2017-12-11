@@ -19,7 +19,9 @@ fi
 
 # Sources environment-specific definitions
 if [ -d ~/.bashrc.d/ ]; then
-  . ~/.bashrc.d/*
+    for script in ~/.bashrc.d/*; do
+        . "${script}"
+    done
 fi
 
 # Updates PS1 to include the current branch if working in a git repository
