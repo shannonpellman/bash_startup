@@ -25,8 +25,8 @@ function git {
     fixup)
       subject=$(_get_fixup_subject)
 
-      git add -A
-      git commit -m "fixup! ${subject}"
+      _git add -A
+      _git commit -m "fixup! ${subject}"
       ;;
 
     push)
@@ -40,7 +40,7 @@ function git {
         fi
       fi
 
-      _do_git "${@}"
+      _git "${@}"
 
       ;;
 
@@ -56,19 +56,19 @@ function git {
       if [ "${do_autofixup}" = true ]; then
         hash=$(_get_fixup_hash)
 
-        git rebase -i --autosquash "${hash}"
+        _git rebase -i --autosquash "${hash}~1"
       fi
 
       ;;
 
     *)
-      _do_git "${@}"
+      _git "${@}"
       ;;
   esac
 }
 
 # Executes the git command, bypassing the function above
-function _do_git {
+function _git {
   command git "${@}"
 }
 
@@ -87,6 +87,6 @@ function _get_fixup_subject {
 function _get_fixup {
   format="${1}"
 
-  echo $(git log -n 1 --grep "^fixup!" --invert-grep --pretty="format:${format}")
+  echo $(_git log -n 1 --grep "^fixup!" --invert-grep --pretty="format:${format}")
 }
 
