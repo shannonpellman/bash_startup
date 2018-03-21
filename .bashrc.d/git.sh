@@ -13,6 +13,13 @@ PROMPT_ON_PUSH=false
 #
 #     Optionally prompts the user before pushing
 #
+#   git pull
+#
+#     A safer version of the default that explicitly calls
+#
+#       git pull <default_remote> <current_branch>
+#       git merge <default_remote>/<current_branch>
+#
 #   git rebase --autofixup
 #
 #     Provides a custom option "--autofixup" that automatically
@@ -27,6 +34,7 @@ function git {
 
       _git add -A
       _git commit -m "fixup! ${subject}"
+
       ;;
 
     push)
@@ -41,6 +49,21 @@ function git {
       fi
 
       _git "${@}"
+
+      ;;
+
+    pull)
+      if [[ ${#@} > 1 ]]; then
+        _git "${@}"
+
+        return
+      fi
+
+      current_branch=$(git rev-parse --abbrev-ref HEAD)
+      default_remote=$(git config --get branch."${current_branch}".remote)
+
+      _git pull "${default_remote}" "${current_branch}" \
+        && _git merge "${default_remote}/${current_branch}"
 
       ;;
 
@@ -63,6 +86,7 @@ function git {
 
     *)
       _git "${@}"
+
       ;;
   esac
 }
