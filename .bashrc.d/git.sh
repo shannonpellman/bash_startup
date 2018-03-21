@@ -62,8 +62,14 @@ function git {
       current_branch=$(git rev-parse --abbrev-ref HEAD)
       default_remote=$(git config --get branch."${current_branch}".remote)
 
-      _git pull "${default_remote}" "${current_branch}" \
-        && _git merge "${default_remote}/${current_branch}"
+      pull_status=$(_git pull "${default_remote}" "${current_branch}")
+      echo "${pull_status}"
+
+      if [[ "${pull_status}" =~ "Already up-to-date." ]]; then
+        return
+      fi
+
+      _git merge "${default_remote}/${current_branch}"
 
       ;;
 
