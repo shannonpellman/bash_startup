@@ -27,6 +27,7 @@ PROMPT_ON_PUSH=false
 #     commit to rebase against before calling rebase --autosquash
 function git {
   command="${1}"
+  is_verbose=$(_is_verbose "${@}")
 
   case "${command}" in
     fixup)
@@ -53,7 +54,21 @@ function git {
       ;;
 
     pull)
-      if [[ ${#@} > 1 ]]; then
+      args=0
+
+      for arg in "${@}"; do
+        case "${arg}" in
+          pull|-v|--verbose)
+            # do nothing
+            ;;
+          *)
+            (( args++ ))
+            ;;
+        esac
+      done
+
+      # passes through to git if additional parameters are passed
+      if [[ ${args} > 0 ]]; then
         _git "${@}"
 
         return
@@ -62,14 +77,29 @@ function git {
       current_branch=$(git rev-parse --abbrev-ref HEAD)
       default_remote=$(git config --get branch."${current_branch}".remote)
 
-      pull_status=$(_git pull "${default_remote}" "${current_branch}")
-      echo "${pull_status}"
+      fetch_command="_git fetch ${default_remote} ${current_branch}"
 
-      if [[ "${pull_status}" =~ "Already up-to-date." ]]; then
+      $is_verbose && {
+        echo "${fetch_command}"
+        fetch_command="${fetch_command} 2>&1 | sed 's/^/# /'"
+      }
+
+      fetch_status=$(eval ${fetch_command})
+      echo "${fetch_status}"
+
+      if [[ "${fetch_status}" =~ "Already up-to-date." ]]; then
         return
       fi
 
-      _git merge "${default_remote}/${current_branch}"
+      merge_command="_git merge ${default_remote}/${current_branch}"
+
+      $is_verbose && {
+        echo -e "\n${merge_command}"
+        merge_command="${merge_command} 2>&1 | sed 's/^/# /'"
+      }
+
+      merge_status=$(eval "${merge_command}")
+      echo "${merge_status}"
 
       ;;
 
@@ -120,3 +150,15 @@ function _get_fixup {
   echo $(_git log -n 1 --grep "^fixup!" --invert-grep --pretty="format:${format}")
 }
 
+# Checks if verbose output is requested
+function _is_verbose {
+  for arg in "${@}"; do
+    if [[ "${arg}" == "-v" || "${arg}" == "--verbose" ]]; then
+      echo true
+      return
+    fi
+  done
+
+  echo false
+  return
+}
