@@ -114,9 +114,10 @@ function git {
 
       if [ "${do_autofixup}" = true ]; then
         hash="$(_get_fixup_hash)~1"
+        _git rebase -i --autosquash "${hash}"
+      else
+        _git "${@}"
       fi
-
-      _git rebase -i --autosquash "${hash}"
 
       ;;
 
