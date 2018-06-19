@@ -24,6 +24,9 @@ if [ -d ~/.bashrc.d/ ]; then
     done
 fi
 
+# Appends a slash to symlinked directories on tab completion
+bind 'set mark-symlinked-directories on'
+
 # Updates PS1 to include the current branch if working in a git repository
 for script in /usr/share/git-core/contrib/completion/git-prompt.sh \
     /usr/share/bash-completion/bash_completion \
@@ -57,7 +60,7 @@ if [[ ${GIT_PS1_SHOWDIRTYSTATE} == 1 ]]; then
   _PS1+="${fg_magenta}\$(__git_ps1)"
 fi
 
-_PS1+="${reset} [\$?]\n"
+_PS1+="${reset} [\$(date +%H:%M:%S)]\n"
 _PS1+="${bold}${user_color}${prompt}${reset} "
 
 export PS1="${_PS1}"
